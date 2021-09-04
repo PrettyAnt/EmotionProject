@@ -69,6 +69,7 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
     private              FunctionFragment    functionFragment;
     private              FragmentTransaction fragmentTransaction;
     private              AppReceiveCallBack  appReceiveCallBack;
+    private boolean softVisible = false;
 
 
     public static KeyBoardManager with(AppCompatActivity activity) {
@@ -286,7 +287,7 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
                 chooseKeyBoardPage(EMOTION);
                 inputMode.setChecked(false);
                 add.setChecked(false);
-                if (isSoftInputShown()) {
+                if (softVisible) {
                     lockContentHeight();
                     showEmotionLayout();
                     unlockContentHeightDelayed();
@@ -308,7 +309,7 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
                 chooseKeyBoardPage(FUNCTION);
                 expression.setChecked(false);
                 inputMode.setChecked(false);
-                if (isSoftInputShown()) {
+                if (softVisible) {
                     lockContentHeight();
                     showEmotionLayout();
                     unlockContentHeightDelayed();
@@ -449,7 +450,7 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
      * 显示表情布局
      */
     private void showEmotionLayout() {
-        int softInputHeight = getSupportSoftInputHeight();
+        int softInputHeight = ConstantFields.softInputHeight;
         if (softInputHeight == 0) {
             softInputHeight = getKeyBoardHeight();
             flKeyboard.post(new Runnable() {
@@ -522,11 +523,15 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
             @Override
             public void keyBoardShow(int height) {
                 Log.i("PrettyAnt", "keyBoardShow->软键盘高度" + height);
+                ConstantFields.softInputHeight = height;
+                softVisible = true;
             }
 
             @Override
             public void keyBoardHide(int height) {
                 Log.i("PrettyAnt", "keyBoardHide->软键盘高度" + height);
+                ConstantFields.softInputHeight = height;
+                softVisible = false;
             }
         });
     }
