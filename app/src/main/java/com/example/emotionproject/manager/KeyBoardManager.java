@@ -417,14 +417,6 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
     }
 
 
-    /**
-     * 是否显示软件盘
-     *
-     * @return
-     */
-    private boolean isSoftInputShown() {
-        return getSupportSoftInputHeight() != 0;
-    }
 
     /**
      * 编辑框获取焦点，并显示软件盘
@@ -479,37 +471,6 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
         }
     }
 
-    /**
-     * 获取软件盘的高度
-     *
-     * @return
-     */
-    private int getSupportSoftInputHeight() {
-        Rect r = new Rect();
-        /**
-         * decorView是window中的最顶层view，可以从window中通过getDecorView获取到decorView。
-         * 通过decorView获取到程序显示的区域，包括标题栏，但不包括状态栏。
-         */
-        activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
-        //获取屏幕的高度
-        int screenHeight = activity.getWindow().getDecorView().getRootView().getHeight();
-        //计算软件盘的高度
-        int softInputHeight = screenHeight - r.bottom;
-
-        /**
-         * 某些Android版本下，没有显示软键盘时减出来的高度总是144，而不是零，
-         * 这是因为高度是包括了虚拟按键栏的(例如华为系列)，所以在API Level高于20时，
-         * 我们需要减去底部虚拟按键栏的高度（如果有的话）
-         */
-        // When SDK Level >= 20 (Android L), the softInputHeight will contain the height of softButtonsBar (if has)
-        softInputHeight = softInputHeight - getSoftButtonsBarHeight();
-        //存一份到本地
-        if (softInputHeight > 0) {
-            sp.edit().putInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, softInputHeight).apply();
-            ConstantFields.softInputHeight = softInputHeight;//保存一份到本地
-        }
-        return softInputHeight;
-    }
 
     /**
      * 添加软键盘的监听
