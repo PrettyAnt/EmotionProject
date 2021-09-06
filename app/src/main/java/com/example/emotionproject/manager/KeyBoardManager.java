@@ -49,6 +49,7 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
     private static final String SHARE_PREFERENCE_NAME              = "EmotionKeyboard";
     private static final String SHARE_PREFERENCE_SOFT_INPUT_HEIGHT = "soft_input_height";
     private static final String SHARE_PREFERENCE_FRISTINSTALL = "fristInstall";
+    private static final String TAG = "PrettyAnt";
 
     private              AppCompatActivity   activity;
     private              View                rootKeyBoardView;
@@ -69,6 +70,7 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
     private              FunctionFragment    functionFragment;
     private              FragmentTransaction fragmentTransaction;
     private              AppReceiveCallBack  appReceiveCallBack;
+    private boolean softVisible = false;
 
 
     public static KeyBoardManager with(AppCompatActivity activity) {
@@ -286,7 +288,7 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
                 chooseKeyBoardPage(EMOTION);
                 inputMode.setChecked(false);
                 add.setChecked(false);
-                if (isSoftInputShown()) {
+                if (softVisible) {
                     lockContentHeight();
                     showEmotionLayout();
                     unlockContentHeightDelayed();
@@ -308,7 +310,7 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
                 chooseKeyBoardPage(FUNCTION);
                 expression.setChecked(false);
                 inputMode.setChecked(false);
-                if (isSoftInputShown()) {
+                if (softVisible) {
                     lockContentHeight();
                     showEmotionLayout();
                     unlockContentHeightDelayed();
@@ -416,14 +418,6 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
     }
 
 
-    /**
-     * 是否显示软件盘
-     *
-     * @return
-     */
-    private boolean isSoftInputShown() {
-        return getSupportSoftInputHeight() != 0;
-    }
 
     /**
      * 编辑框获取焦点，并显示软件盘
@@ -449,7 +443,7 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
      * 显示表情布局
      */
     private void showEmotionLayout() {
-        int softInputHeight = getSupportSoftInputHeight();
+        int softInputHeight = ConstantFields.softInputHeight;
         if (softInputHeight == 0) {
             softInputHeight = getKeyBoardHeight();
             flKeyboard.post(new Runnable() {
@@ -478,37 +472,6 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
         }
     }
 
-    /**
-     * 获取软件盘的高度
-     *
-     * @return
-     */
-    private int getSupportSoftInputHeight() {
-        Rect r = new Rect();
-        /**
-         * decorView是window中的最顶层view，可以从window中通过getDecorView获取到decorView。
-         * 通过decorView获取到程序显示的区域，包括标题栏，但不包括状态栏。
-         */
-        activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(r);
-        //获取屏幕的高度
-        int screenHeight = activity.getWindow().getDecorView().getRootView().getHeight();
-        //计算软件盘的高度
-        int softInputHeight = screenHeight - r.bottom;
-
-        /**
-         * 某些Android版本下，没有显示软键盘时减出来的高度总是144，而不是零，
-         * 这是因为高度是包括了虚拟按键栏的(例如华为系列)，所以在API Level高于20时，
-         * 我们需要减去底部虚拟按键栏的高度（如果有的话）
-         */
-        // When SDK Level >= 20 (Android L), the softInputHeight will contain the height of softButtonsBar (if has)
-        softInputHeight = softInputHeight - getSoftButtonsBarHeight();
-        //存一份到本地
-        if (softInputHeight > 0) {
-            sp.edit().putInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, softInputHeight).apply();
-            ConstantFields.softInputHeight = softInputHeight;//保存一份到本地
-        }
-        return softInputHeight;
-    }
 
     /**
      * 添加软键盘的监听
@@ -521,12 +484,18 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
         softKeyBoardListener.setOnSoftKeyBoardChangeListener(new SoftKeyBoardListener.OnSoftKeyBoardChangeListener() {
             @Override
             public void keyBoardShow(int height) {
-                Log.i("PrettyAnt", "keyBoardShow->软键盘高度" + height);
+                Log.i(TAG, "keyBoardShow->软键盘高度" + height);
+                sp.edit().putInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, height).apply();
+                ConstantFields.softInputHeight = height;
+                softVisible = true;
             }
 
             @Override
             public void keyBoardHide(int height) {
-                Log.i("PrettyAnt", "keyBoardHide->软键盘高度" + height);
+                Log.i(TAG, "keyBoardHide->软键盘高度" + height);
+                sp.edit().putInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, height).apply();
+                ConstantFields.softInputHeight = height;
+                softVisible = false;
             }
         });
     }
@@ -572,7 +541,6 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
             return 0;
         }
     }
-
     /**
      * 获取软键盘高度，由于第一次直接弹出表情时会出现小问题
      *
@@ -582,6 +550,4 @@ public class KeyBoardManager implements View.OnClickListener, View.OnTouchListen
         return sp.getInt(SHARE_PREFERENCE_SOFT_INPUT_HEIGHT, 1300);
 
     }
-
-
 }
